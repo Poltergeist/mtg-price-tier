@@ -1,3 +1,4 @@
+import path from "path";
 import fetch from "node-fetch";
 import type { GatsbyNode } from "gatsby";
 
@@ -17,7 +18,15 @@ type price = {
   price: string;
   foil: "yes" | "no";
   cn: string;
+  name: string;
+  url: string;
 };
+
+const setsValidation: {
+  [setname: string]: {
+    [key: number]: string;
+  };
+} = {};
 
 async function fetchPaginatedResult(
   url: string,
@@ -50,6 +59,7 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
 
   await Promise.all(
     sets.map(async (set) => {
+      setsValidation[set] = {};
       const result = await fetch(`https://api.scryfall.com/sets/${set}`)
         .then((result) => result.json())
         .then((result) => result);
@@ -65,11 +75,11 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
           contentDigest: createContentDigest(result),
         },
       });
-      console.log("set created");
 
       const cards = await fetchPaginatedResult(result.search_uri);
 
       return cards.forEach((card) => {
+        setsValidation[set][card.collector_number] = card.name;
         createNode({
           ...card,
           foilPrice: `${card.set}${card.collector_number}true`,
@@ -90,23 +100,72 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
 
   const prices = require("./one-output.json");
 
-  prices.forEach((price: price) => {
-    if (price.price === "NaN") {
-      return;
-    }
-    createNode({
-      ...price,
-      price: parseFloat(price.price),
-      foil: price.foil === "yes",
-      priceCode: `${price.set}${price.cn}${price.foil === "yes"}`,
-      id: createNodeId(`price-${price.set}${price.cn}${price.foil === "yes"}`),
-      parent: null,
-      children: [],
-      internal: {
-        type: `Prices`,
-        mediaType: `text/html`,
-        content: JSON.stringify(price),
-        contentDigest: createContentDigest(price),
+  prices
+    .filter(
+      (price: price) =>
+        setsValidation[price.set][price.cn] === price.name &&
+        price.price !== "NaN"
+    )
+    .forEach((price: price) => {
+      createNode({
+        ...price,
+        price: parseFloat(price.price),
+        foil: price.foil === "yes",
+        priceCode: `${price.set}${price.cn}${price.foil === "yes"}`,
+        id: createNodeId(
+          `price-${price.set}${price.cn}${price.foil === "yes"}`
+        ),
+        parent: null,
+        children: [],
+        internal: {
+          type: `Prices`,
+          mediaType: `text/html`,
+          content: JSON.stringify(price),
+          contentDigest: createContentDigest(price),
+        },
+      });
+    });
+};
+
+export const createPages: GatsbyNode["createPages"] = async ({
+  graphql,
+  actions,
+  reporter,
+}) => {
+  const { createPage } = actions;
+
+  const result = await graphql(
+    `
+      query SetQuery {
+        allSets {
+          edges {
+            node {
+              code
+            }
+          }
+        }
+      }
+    `
+  );
+
+  if (result.errors) {
+    reporter.panicOnBuild(`Error while running GraphQL query.`);
+    return;
+  }
+
+  result.data.allSets.edges.forEach((set) => {
+    createPage({
+      path: `/set/${set.node.code}`,
+      component: path.resolve("./src/templates/non-foil-list-template.tsx"),
+      context: {
+        set: set.node.code,
+      },
+    });
+    createPage({
+      path: `/set/${set.node.code}/foil`,
+      component: path.resolve("./src/templates/foil-list-template.tsx"),
+      context: {
+        set: set.node.code,
       },
     });
   });
