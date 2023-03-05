@@ -1,5 +1,6 @@
 import path from "path";
 import fetch from "node-fetch";
+import fs from "fs";
 import type { GatsbyNode } from "gatsby";
 
 type scryfallResponse = {
@@ -55,7 +56,7 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
 }) => {
   const { createNode } = actions;
 
-  const sets = ["one"];
+  const sets = ["one", "onc", "dmr", "snc", "ncc"];
 
   await Promise.all(
     sets.map(async (set) => {
@@ -84,7 +85,7 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
           ...card,
           foilPrice: `${card.set}${card.collector_number}true`,
           nonfoilPrice: `${card.set}${card.collector_number}false`,
-          id: createNodeId(`cards-${card.collector_number}`),
+          id: createNodeId(`cards-${card.set}-${card.collector_number}`),
           parent: null,
           children: [],
           internal: {
@@ -98,33 +99,36 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
     })
   );
 
-  const prices = require("./one-output.json");
+  sets.forEach((set) => {
+    // const prices = require(`./${set}-output.json`);
+    const prices = JSON.parse(fs.readFileSync(`./${set}-output.json`));
 
-  prices
-    .filter(
-      (price: price) =>
-        setsValidation[price.set][price.cn] === price.name &&
-        price.price !== "NaN"
-    )
-    .forEach((price: price) => {
-      createNode({
-        ...price,
-        price: parseFloat(price.price),
-        foil: price.foil === "yes",
-        priceCode: `${price.set}${price.cn}${price.foil === "yes"}`,
-        id: createNodeId(
-          `price-${price.set}${price.cn}${price.foil === "yes"}`
-        ),
-        parent: null,
-        children: [],
-        internal: {
-          type: `Prices`,
-          mediaType: `text/html`,
-          content: JSON.stringify(price),
-          contentDigest: createContentDigest(price),
-        },
+    prices
+      .filter(
+        (price: price) =>
+          setsValidation[price.set][price.cn] === price.name &&
+          price.price !== "NaN"
+      )
+      .forEach((price: price) => {
+        createNode({
+          ...price,
+          price: parseFloat(price.price),
+          foil: price.foil === "yes",
+          priceCode: `${price.set}${price.cn}${price.foil === "yes"}`,
+          id: createNodeId(
+            `price-${price.set}${price.cn}${price.foil === "yes"}`
+          ),
+          parent: null,
+          children: [],
+          internal: {
+            type: `Prices`,
+            mediaType: `text/html`,
+            content: JSON.stringify(price),
+            contentDigest: createContentDigest(price),
+          },
+        });
       });
-    });
+  });
 };
 
 export const createPages: GatsbyNode["createPages"] = async ({
