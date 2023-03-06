@@ -13,6 +13,7 @@ const NonFoilCardList: React.FC<{
             price: number;
             url: string;
           };
+          nonfoil: boolean;
           image_uris: {
             normal: string;
           };
@@ -21,14 +22,16 @@ const NonFoilCardList: React.FC<{
     };
   };
 }> = (props) => {
-  const cards = props.data.allCards.edges.map(
-    ({ node: card }): Card => ({
-      price: card.nonfoilPrice.price,
-      cardmarket_url: card.nonfoilPrice.url,
-      name: card.name,
-      image: card.image_uris.normal,
-    })
-  );
+  const cards = props.data.allCards.edges
+    .filter((card) => card.node.nonfoil)
+    .map(
+      ({ node: card }): Card => ({
+        price: card.nonfoilPrice.price,
+        cardmarket_url: card.nonfoilPrice.url,
+        name: card.name,
+        image: card.image_uris.normal,
+      })
+    );
   return <CardGrid cards={cards} />;
 };
 
@@ -50,6 +53,7 @@ export const nonFoilQuery = graphql`
             price
             url
           }
+          nonfoil
           image_uris {
             normal
           }
