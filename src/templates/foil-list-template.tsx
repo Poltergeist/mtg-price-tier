@@ -1,9 +1,9 @@
 import React from "react";
-import { graphql } from "gatsby";
+import { graphql, Link, PageProps } from "gatsby";
 import type { Card } from "../components/card-grid";
 import { CardGrid } from "../components/card-grid";
 
-const NonFoilCardList: React.FC<{
+const FoilCardList: React.FC<{
   data: {
     allCards: {
       edges: {
@@ -21,8 +21,7 @@ const NonFoilCardList: React.FC<{
       }[];
     };
   };
-}> = (props) => {
-  console.log(props);
+}> = (props: PageProps<Queries.cardFoilQuery>) => {
   const cards = props.data.allCards.edges
     .filter((card) => card.node.foil)
     .map(
@@ -33,13 +32,25 @@ const NonFoilCardList: React.FC<{
         image: card.image_uris.normal,
       })
     );
-  return <CardGrid cards={cards} />;
+  return (
+    <>
+      <ul>
+        <li>
+          <Link to="/sets">Set Overview</Link>
+        </li>
+        <li>
+          <Link to={props.path.replace("/foil/", "")}>Non-Foil cards</Link>
+        </li>
+      </ul>
+      <CardGrid cards={cards} />
+    </>
+  );
 };
 
-export default NonFoilCardList;
+export default FoilCardList;
 
-export const nonFoilQuery = graphql`
-  query MyQuery($set: String) {
+export const foilQuery = graphql`
+  query cardFoil($set: String) {
     allCards(
       filter: {
         set: { code: { eq: $set } }
