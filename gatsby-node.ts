@@ -56,7 +56,7 @@ export const sourceNodes: GatsbyNode["sourceNodes"] = async ({
 }) => {
   const { createNode } = actions;
 
-  const sets = ["one", "onc", "dmr", "snc", "ncc", "dmu"];
+  const sets = ["one", "onc", "dmr", "snc", "ncc", "dmu", "mom", "mul"];
 
   await Promise.all(
     sets.map(async (set) => {
