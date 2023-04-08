@@ -29,7 +29,7 @@ const FoilCardList: React.FC<{
         price: card.foilPrice.price,
         cardmarket_url: card.foilPrice.url,
         name: card.name,
-        image: card.image_uris.normal,
+        image: card.image_uris?.normal || card.card_faces[0].image_uris.normal,
       })
     );
   return (
@@ -68,6 +68,11 @@ export const foilQuery = graphql`
           foil
           image_uris {
             normal
+          }
+          card_faces {
+            image_uris {
+              normal
+            }
           }
         }
       }

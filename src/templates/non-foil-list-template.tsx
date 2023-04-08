@@ -16,6 +16,13 @@ const NonFoilCardList: React.FC<{
           nonfoil: boolean;
           image_uris: {
             normal: string;
+          } | null;
+          card_faces: {
+            image_uris:
+              | {
+                  normal: string;
+                }[]
+              | null;
           };
         };
       }[];
@@ -29,7 +36,7 @@ const NonFoilCardList: React.FC<{
         price: card.nonfoilPrice.price,
         cardmarket_url: card.nonfoilPrice.url,
         name: card.name,
-        image: card.image_uris.normal,
+        image: card.image_uris?.normal || card.card_faces[0].image_uris.normal,
       })
     );
   return (
@@ -68,6 +75,11 @@ export const nonFoilQuery = graphql`
           nonfoil
           image_uris {
             normal
+          }
+          card_faces {
+            image_uris {
+              normal
+            }
           }
         }
       }
