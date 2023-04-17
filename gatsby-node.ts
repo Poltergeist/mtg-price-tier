@@ -162,16 +162,31 @@ export const createPages: GatsbyNode["createPages"] = async ({
       path: `/set/${set.node.code}`,
       component: path.resolve("./src/templates/non-foil-list-template.tsx"),
       context: {
-        set: set.node.code,
+        set: [set.node.code],
       },
     });
     createPage({
       path: `/set/${set.node.code}/foil`,
       component: path.resolve("./src/templates/foil-list-template.tsx"),
       context: {
-        set: set.node.code,
+        set: [set.node.code],
       },
     });
+  });
+
+  createPage({
+    path: `/booster/mom`,
+    component: path.resolve("./src/templates/non-foil-list-template.tsx"),
+    context: {
+      set: ["mul", "mom"],
+    },
+  });
+  createPage({
+    path: `/booster/mom/foil`,
+    component: path.resolve("./src/templates/foil-list-template.tsx"),
+    context: {
+      set: ["mul", "mom"],
+    },
   });
 };
 

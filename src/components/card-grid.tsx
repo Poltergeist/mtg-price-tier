@@ -52,6 +52,7 @@ export type Card = {
   cardmarket_url: string;
   name: string;
   image: string;
+  promo_type: string[];
 };
 export type CardGridProps = {
   cards: Card[];
@@ -75,6 +76,9 @@ export const CardGrid = (props: CardGridProps) => {
               <a href={card.cardmarket_url} target="_blank">
                 <Img src={card.image} />
               </a>
+              {card.promo_type?.includes("halofoil") ? (
+                <div>Halo Foil</div>
+              ) : null}
             </div>
           </React.Fragment>
         );

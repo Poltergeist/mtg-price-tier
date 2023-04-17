@@ -37,6 +37,7 @@ const NonFoilCardList: React.FC<{
         cardmarket_url: card.nonfoilPrice.url,
         name: card.name,
         image: card.image_uris?.normal || card.card_faces[0].image_uris.normal,
+        promo_type: card.promo_types,
       })
     );
   return (
@@ -57,10 +58,10 @@ const NonFoilCardList: React.FC<{
 export default NonFoilCardList;
 
 export const nonFoilQuery = graphql`
-  query cardNonFoil($set: String) {
+  query cardNonFoil($set: [String]) {
     allCards(
       filter: {
-        set: { code: { eq: $set } }
+        set: { code: { in: $set } }
         nonfoilPrice: { price: { ne: null } }
       }
       sort: { nonfoilPrice: { price: DESC } }
@@ -68,6 +69,7 @@ export const nonFoilQuery = graphql`
       edges {
         node {
           name
+          promo_types
           nonfoilPrice {
             price
             url

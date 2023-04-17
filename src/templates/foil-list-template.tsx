@@ -30,6 +30,7 @@ const FoilCardList: React.FC<{
         cardmarket_url: card.foilPrice.url,
         name: card.name,
         image: card.image_uris?.normal || card.card_faces[0].image_uris.normal,
+        promo_type: card.promo_types,
       })
     );
   return (
@@ -50,10 +51,10 @@ const FoilCardList: React.FC<{
 export default FoilCardList;
 
 export const foilQuery = graphql`
-  query cardFoil($set: String) {
+  query cardFoil($set: [String]) {
     allCards(
       filter: {
-        set: { code: { eq: $set } }
+        set: { code: { in: $set } }
         foilPrice: { price: { ne: null } }
       }
       sort: { foilPrice: { price: DESC } }
@@ -61,6 +62,7 @@ export const foilQuery = graphql`
       edges {
         node {
           name
+          promo_types
           foilPrice {
             price
             url
@@ -77,7 +79,7 @@ export const foilQuery = graphql`
         }
       }
     }
-    sets(code: { eq: $set }) {
+    sets(code: { in: $set }) {
       code
     }
   }
